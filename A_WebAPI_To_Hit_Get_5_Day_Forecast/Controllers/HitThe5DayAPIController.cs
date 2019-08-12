@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using A_WebAPI_To_Hit_Get_5_Day_Forecast.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,12 @@ namespace A_WebAPI_To_Hit_Get_5_Day_Forecast.Controllers
     public class HitThe5DayAPIController : ControllerBase
     {
         public const string MyAPI = "https://localhost:44317";
+        IHelper _helper;
+
+        public HitThe5DayAPIController(IHelper helper)
+        {
+            _helper = helper;
+        }
 
         [Route("{input}")]
         public async Task<ActionResult> Input(string input)
@@ -26,24 +33,18 @@ namespace A_WebAPI_To_Hit_Get_5_Day_Forecast.Controllers
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    //var isValidZip = _helper.IsValidZip(input);
-                    //var isValidCity = _helper.IsValidCity(input);
+                    var isValidZip = _helper.IsValidZip(input);
+                    var isValidCity = _helper.IsValidCity(input);
 
                     var response = new HttpResponseMessage();
 
-                    //if (isValidZip)
+                    if (isValidZip || isValidCity)
                         response = await client.GetAsync($"/api/weather/{input}");
-
-                    //if (isValidCity)
-                    //    response = await client.GetAsync($"/data/2.5/forecast?q={input}&mode=xml&appid=f99e1e3ccd770a8a43db5680342edd6a&units=imperial&days=5");
 
                     response.EnsureSuccessStatusCode();
 
                     var weatherXML_Doc = await response.Content.ReadAsStringAsync();
-                    //var list = _helper.RetrieveDataFromXML(weatherXML_Doc);
-                    //var avgTempList = _helper.CalculateAvgTemps(list, input);
 
-                    //return CreatedAtAction(nameof(input), avgTempList); <-------Use for POST.
                     return Ok(weatherXML_Doc);
                 }
                 catch (Exception e)
